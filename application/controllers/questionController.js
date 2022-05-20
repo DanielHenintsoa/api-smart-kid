@@ -1,4 +1,4 @@
-var { QuestionModel, QuestionCategorieModel, QuestionJoueursModel} = require('../models/questionModel.js');
+var { QuestionModel, QuestionCategorieModel, QuestionJoueursModel, QuestionFiniModel} = require('../models/questionModel.js');
 
 /**
  * questionController.js
@@ -12,7 +12,7 @@ module.exports = {
      */
     list: function (req, res) {
         const {user, categ} = req.params;
-        
+
         QuestionJoueursModel.find({idCategorie : categ}, async function (err, questions) {
             if (err) {
                 return res.status(500).json({
@@ -37,7 +37,6 @@ module.exports = {
                 } else {
                     questionNonFini.push(quest);
                 }
-                
             });
 
             let listeQuestion = [];
@@ -48,110 +47,25 @@ module.exports = {
         });
     },
 
-    /**
-     * questionController.show()
-     */
-    show: function (req, res) {
-        var id = req.params.id;
-
-        QuestionModel.findOne({_id: id}, function (err, question) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting question.',
-                    error: err
-                });
-            }
-
-            if (!question) {
-                return res.status(404).json({
-                    message: 'No such question'
-                });
-            }
-
-            return res.json(question);
-        });
-    },
-
-    /**
-     * questionController.create()
-     */
-    create: function (req, res) {
-        var question = new QuestionModel({
-			question : req.body.question,
-			idCategorie : req.body.idCategorie,
-			reponse : req.body.reponse,
-			options : req.body.options,
-			audio : req.body.audio,
-			image : req.body.image
-        });
-
-        question.save(function (err, question) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when creating question',
-                    error: err
-                });
-            }
-
-            return res.status(201).json(question);
-        });
-    },
-
-    /**
-     * questionController.update()
-     */
-    update: function (req, res) {
-        var id = req.params.id;
-
-        QuestionModel.findOne({_id: id}, function (err, question) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting question',
-                    error: err
-                });
-            }
-
-            if (!question) {
-                return res.status(404).json({
-                    message: 'No such question'
-                });
-            }
-
-            question.question = req.body.question ? req.body.question : question.question;
-			question.idCategorie = req.body.idCategorie ? req.body.idCategorie : question.idCategorie;
-			question.reponse = req.body.reponse ? req.body.reponse : question.reponse;
-			question.options = req.body.options ? req.body.options : question.options;
-			question.audio = req.body.audio ? req.body.audio : question.audio;
-			question.image = req.body.image ? req.body.image : question.image;
-			
-            question.save(function (err, question) {
-                if (err) {
-                    return res.status(500).json({
-                        message: 'Error when updating question.',
-                        error: err
-                    });
-                }
-
-                return res.json(question);
+    terminerQuestion : async function (req, res) {
+        const {idQuestion, idUser} = req.body;
+        try {
+            const fini = await QuestionFiniModel.findOne({
+                idQuestion : idQuestion,
+                idUser : idUser
             });
-        });
-    },
-
-    /**
-     * questionController.remove()
-     */
-    remove: function (req, res) {
-        var id = req.params.id;
-
-        QuestionModel.findByIdAndRemove(id, function (err, question) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when deleting the question.',
-                    error: err
+    
+            if(fini){
+                res.json(fini);
+            } else {
+                const newFini = new QuestionFiniModel({
+                    idQuestion : idQuestion,
+                    idUser : idUser
                 });
+                res.json(await newFini.save().then().catch(err => { throw err }));
             }
-
-            return res.status(204).json();
-        });
+        } catch (error) {
+            res.status(500).send(error);
+        }
     }
 };

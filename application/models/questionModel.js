@@ -21,8 +21,14 @@ var questionJoueursSchema = new Schema({
 	'joueurs': Array
 });
 
+var questionFiniSchema = new Schema({
+	'idQuestion' : mongoose.Schema.Types.ObjectId,
+	'idUser' : mongoose.Schema.Types.ObjectId
+});
+
 module.exports = {
 	QuestionModel : mongoose.model('question', questionSchema, 'question'),
 	QuestionCategorieModel : mongoose.model('question_categorie', questionSchema, 'question_categorie'),
-	QuestionJoueursModel : mongoose.model('question_joueurs', questionJoueursSchema, 'question_joueurs')
+	QuestionJoueursModel : mongoose.model('question_joueurs', questionJoueursSchema, 'question_joueurs'),
+	QuestionFiniModel : mongoose.model('question_fini', questionFiniSchema, 'question_fini')
 };
