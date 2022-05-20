@@ -1,127 +1,50 @@
-var UserModel = require('../models/userModel.js');
-
+const UserModel = require('../models/userModel.js');
+const Utilisateur = require('../classes/utilisateur.js');
+const sha1 = require('sha1');
 /**
  * userController.js
  *
  * @description :: Server-side logic for managing users.
  */
 module.exports = {
-
-    /**
-     * userController.list()
-     */
-    list: function (req, res) {
-        
-        UserModel.find(function (err, users) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting user.',
-                    error: err
-                });
-            }
-
-            return res.json(users);
-        });
-    },
-
-    /**
-     * userController.show()
-     */
-    show: function (req, res) {
-        var id = req.params.id;
-
-        UserModel.findOne({_id: id}, function (err, user) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting user.',
-                    error: err
-                });
-            }
-
-            if (!user) {
-                return res.status(404).json({
-                    message: 'No such user'
-                });
-            }
-
-            return res.json(user);
-        });
-    },
-
-    /**
-     * userController.create()
-     */
-    create: function (req, res) {
-        var user = new UserModel({
-			email : req.body.email,
-			mdp : req.body.mdp,
-			pseudo : req.body.pseudo
-        });
-
-        user.save(function (err, user) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when creating user',
-                    error: err
-                });
-            }
-
-            return res.status(201).json(user);
-        });
-    },
-
-    /**
-     * userController.update()
-     */
-    update: function (req, res) {
-        var id = req.params.id;
-
-        UserModel.findOne({_id: id}, function (err, user) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when getting user',
-                    error: err
-                });
-            }
-
-            if (!user) {
-                return res.status(404).json({
-                    message: 'No such user'
-                });
-            }
-
-            user.email = req.body.email ? req.body.email : user.email;
-			user.mdp = req.body.mdp ? req.body.mdp : user.mdp;
-			user.pseudo = req.body.pseudo ? req.body.pseudo : user.pseudo;
-			
-            user.save(function (err, user) {
-                if (err) {
-                    return res.status(500).json({
-                        message: 'Error when updating user.',
-                        error: err
-                    });
-                }
-
-                return res.json(user);
+    
+    login: async function (req, res) {
+        const {email, mdp} = req.body;
+        try {
+            const user = await UserModel.findOne({
+                email : email,
+                mdp : sha1(mdp)
             });
-        });
+            if(!user){
+                res.status(500).send({
+                    message : "Erreur d'authentification !"
+                });
+            } else {
+                res.json(user);
+            }
+        } catch (error) {
+            res.status(500).send(error);
+        }
     },
 
-    /**
-     * userController.remove()
-     */
-    remove: function (req, res) {
-        var id = req.params.id;
+    inscription: async function (req, res) {
+        const {pseudo, email, mdp, confirmMdp} = req.body;
+        try {
+            const user = new Utilisateur();
+                user.mode = "modif";
+                user.pseudo = pseudo;
+                user.email = email;
+                user.mdp = mdp;
+                user.confirmMdp = confirmMdp;
 
-        UserModel.findByIdAndRemove(id, function (err, user) {
-            if (err) {
-                return res.status(500).json({
-                    message: 'Error when deleting the user.',
-                    error: err
+                user.insert().then(response => {
+                    res.json(response);
+                }).catch(error => {
+                    console.log(error);
+                    res.status(500).send(error);
                 });
-            }
-
-            return res.status(204).json();
-        });
+        } catch (error) {
+            res.status(500).send(error);
+        }
     }
 };
