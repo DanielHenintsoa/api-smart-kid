@@ -15,6 +15,16 @@ app.get('/', cors(), async(req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+app.get('/assets/:file', cors(), async(req, res) => {
+    try {
+        const file = req.params.file;
+        res.sendFile(path.join(__dirname, '/assets/'+file));
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+});
+
 app.listen(process.env.PORT || 3001, ()=>{
     console.log("Listenning on port 3001...");
 });
