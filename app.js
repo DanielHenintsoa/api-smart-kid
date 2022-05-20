@@ -9,7 +9,7 @@ app.use(express.urlencoded({extended : true}));
 app.use(express.json());
 app.use(cors({origin : "*"}));
 
-app.use("/api", indexRoutes);
+app.use("/api", cors(), indexRoutes);
 
 app.get('/', cors(), async(req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
